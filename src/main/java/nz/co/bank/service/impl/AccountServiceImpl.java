@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Cacheable(value = "accounts", key = "#customerId")
     public List<AccountDTO> getAllAccounts(CustomerDTO customerDTO) {
         Account account = new Account();
         account.setCustomerId(customerDTO.id());
@@ -32,11 +35,13 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Cacheable(value = "account", key = "#id")
     public Optional<AccountDTO> getById(Long id) {
         return accountRepository.findById(id).map(account -> new AccountDTO(account.getId(), account.getAccountNumber(), account.getCustomerId(), account.getNickName()));
     }
 
     @Override
+    @CacheEvict(value = "accounts", key = "#customerId")
     public Optional<AccountDTO> create(CustomerDTO customerDTO, CreateAccountDTO accountDTO) throws Exception {
 
         if(getAllAccounts(customerDTO).size() >= 5) {
